@@ -1,0 +1,4 @@
+[sources]
+unknown-registry = "warn"
+unknown-git = "warn"
+allow-git = []
