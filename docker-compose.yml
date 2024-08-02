@@ -1,0 +1,14 @@
+services:
+  pgdb:
+    image: postgres:16
+    container_name: be-pgdb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - be-pgdb:/var/lib/postgresql/data
+
+volumes:
+  be-pgdb:
