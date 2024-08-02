@@ -4,3 +4,6 @@
 # Macos
 .DS_store
 
+# Secret
+.env
+

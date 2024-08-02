@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 axum = { workspace = true }
+dotenv = { workspace = true }
 tokio = { workspace = true }
