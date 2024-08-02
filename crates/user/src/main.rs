@@ -1,5 +1,7 @@
 use axum::{routing::get, Router};
 
+struct UserError {}
+
 async fn root() -> &'static str {
     "Hello, World!"
 }
