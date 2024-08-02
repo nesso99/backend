@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS "user";
+CREATE TABLE "user" (
+    id VARCHAR(255)
+);
