@@ -1909,6 +1909,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "trading_bot"
+version = "0.1.0"
+dependencies = [
+ "axum",
+]
+
+[[package]]
 name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
