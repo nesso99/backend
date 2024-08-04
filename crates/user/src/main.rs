@@ -1,6 +1,12 @@
 use std::time::Duration;
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::get,
+    Json, Router,
+};
 use clap::Parser;
 use serde_json::json;
 use sqlx::{postgres::PgPoolOptions, PgPool};
@@ -31,6 +37,7 @@ async fn main() {
         .route("/", get(root))
         .route("/api/:version/foo", get(handler))
         .route("/api/:version/users", get(get_users))
+        .route("/api/:version/users/:id", get(get_user))
         .with_state(pool);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -44,12 +51,16 @@ async fn get_users(State(pool): State<PgPool>) -> Result<impl IntoResponse, (Sta
     Ok(Json(users))
 }
 
-// async fn get_user(State(pool): State<PgPool>) -> Result<String, (StatusCode, String)> {
-//     sqlx::query_scalar("select * from \"user\"")
-//         .fetch_one(&pool)
-//         .await
-//         .map_err(internal_error)
-// }
+async fn get_user(
+    State(pool): State<PgPool>,
+    Path((_, id)): Path<(String, String)>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let user = sqlx::query_as!(User, r#"SELECT * FROM "user" WHERE id = $1 LIMIT 1"#, id)
+        .fetch_one(&pool)
+        .await
+        .map_err(internal_error)?;
+    Ok(Json(user))
+}
 
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
