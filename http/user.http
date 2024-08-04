@@ -5,3 +5,7 @@ GET {{host}}/
 ###
 
 GET {{host}}/api/v1/foo
+
+###
+
+GET {{host}}/api/v1/users

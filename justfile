@@ -1,18 +1,18 @@
 run-user:
   cargo run -p user
 
-migrate-user:
-  sqlx migrate run --source ./crates/user/migrations
 
 install-sqlx-cli:
   cargo install sqlx-cli
 
-database-create:
+db-migrate:
+  sqlx migrate run
+
+db-create:
   sqlx database create
 
-database-drop:
+db-drop:
   sqlx database drop
 
-database-reset:
-  just database-drop
-  just database-create
+db-reset:
+  sqlx database reset
