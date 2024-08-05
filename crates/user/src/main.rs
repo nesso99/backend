@@ -104,7 +104,7 @@ async fn get_users(State(pool): State<PgPool>) -> Result<impl IntoResponse, (Sta
 
 async fn get_user(
     State(pool): State<PgPool>,
-    Path((_, id)): Path<(String, String)>,
+    Path((_, id)): Path<(String, i64)>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let user = sqlx::query_as!(User, r#"SELECT * FROM "user" WHERE id = $1 LIMIT 1"#, id)
         .fetch_one(&pool)
