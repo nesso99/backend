@@ -5,23 +5,15 @@ use axum::{
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
         Method,
     },
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
+    Router,
 };
 use clap::Parser;
-use serde_json::json;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
-use user::{config::Config, module::user::new_user_router, version::Version};
-
-async fn root() -> impl IntoResponse {
-    Json(json!({}))
-}
-
-async fn handler(version: Version) {
-    println!("received request with version {version:?}");
-}
+use user::{
+    config::Config,
+    module::{health::HealthRouter, user::UserRouter},
+};
 
 #[tokio::main]
 async fn main() {
@@ -43,9 +35,8 @@ async fn main() {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let app = Router::new()
-        .route("/", get(root))
-        .route("/api/:version/foo", get(handler))
-        .nest("/api/:version/users", new_user_router())
+        .nest("/api/:version/users", UserRouter::new_router())
+        .nest("/api/:version/health", HealthRouter::new_router())
         .with_state(pool)
         .layer(cors_layer);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();

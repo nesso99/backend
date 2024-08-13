@@ -14,10 +14,13 @@ use crate::error::UserError;
 
 use super::{create_user, find_user_by_id, find_users, CreateUserDto};
 
-pub fn new_user_router() -> Router<sqlx::Pool<sqlx::Postgres>> {
-    Router::new()
-        .route("/", get(get_users).post(post_user))
-        .route("/:id", get(get_user))
+pub struct UserRouter;
+impl UserRouter {
+    pub fn new_router() -> Router<sqlx::Pool<sqlx::Postgres>> {
+        Router::new()
+            .route("/", get(get_users).post(post_user))
+            .route("/:id", get(get_user))
+    }
 }
 
 async fn post_user(
