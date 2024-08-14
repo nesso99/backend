@@ -10,10 +10,7 @@ use axum::{
 use clap::Parser;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
-use user::{
-    config::Config,
-    module::{health::HealthRouter, user::UserRouter},
-};
+use trading_bot::config::Config;
 
 #[tokio::main]
 async fn main() {
@@ -34,11 +31,7 @@ async fn main() {
         // .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
-    let app = Router::new()
-        .nest("/api/:version/users", UserRouter::new_router())
-        .nest("/api/:version/health", HealthRouter::new_router())
-        .with_state(pool)
-        .layer(cors_layer);
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
+    let app = Router::new().with_state(pool).layer(cors_layer);
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
