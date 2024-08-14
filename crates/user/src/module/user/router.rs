@@ -10,7 +10,7 @@ use axum::{
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::error::UserError;
+use crate::error::AppError;
 
 use super::{create_user, find_user_by_id, find_users, CreateUserDto};
 
@@ -26,7 +26,7 @@ impl UserRouter {
 async fn post_user(
     State(pool): State<PgPool>,
     Json(body): Json<CreateUserDto>,
-) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+) -> Result<impl IntoResponse, AppError> {
     let query_result = create_user(&pool, body).await;
 
     match query_result {
@@ -40,43 +40,24 @@ async fn post_user(
             if e.to_string()
                 .contains("duplicate key value violates unique constraint")
             {
-                let error_response = serde_json::json!({
-                    "status": "fail",
-                    "message": "Note with that title already exists",
-                });
-                return Err((StatusCode::CONFLICT, Json(error_response)));
+                return Err(AppError::ConflictRecord);
             }
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"status": "error","message": format!("{:?}", e)})),
-            ))
+            Err(AppError::Internal)
         }
     }
 }
 
-async fn get_users(State(pool): State<PgPool>) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let users = find_users(&pool).await.map_err(internal_error)?;
+async fn get_users(State(pool): State<PgPool>) -> Result<impl IntoResponse, AppError> {
+    let users = find_users(&pool).await?;
     Ok(Json(users))
 }
 
 async fn get_user(
     State(pool): State<PgPool>,
     Path(params): Path<HashMap<String, String>>,
-) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let id = params
-        .get("id")
-        .ok_or(UserError::Unknown)
-        .map_err(internal_error)?;
-    let id = id.parse::<i64>().map_err(internal_error)?;
-    let user = find_user_by_id(&pool, id).await.map_err(internal_error)?;
+) -> Result<impl IntoResponse, AppError> {
+    let id = params.get("id").ok_or(AppError::BadRequest)?;
+    let id = id.parse::<i64>()?;
+    let user = find_user_by_id(&pool, id).await?;
     Ok(Json(user))
-}
-
-/// Utility function for mapping any error into a `500 Internal Server Error`
-/// response.
-fn internal_error<E>(err: E) -> (StatusCode, String)
-where
-    E: std::error::Error,
-{
-    (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }
