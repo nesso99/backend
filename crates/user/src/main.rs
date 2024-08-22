@@ -7,7 +7,9 @@ use axum::{
     },
     Router,
 };
+use bb8_redis::RedisConnectionManager;
 use clap::Parser;
+use redis::AsyncCommands;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
 use user::{
@@ -27,6 +29,16 @@ async fn main() {
         .connect(&config.database_url)
         .await
         .expect("can't connect to database");
+
+    let manager = RedisConnectionManager::new(config.redis_url).unwrap();
+    let redis_pool = bb8::Pool::builder().build(manager).await.unwrap();
+    {
+        // ping the database before starting
+        let mut conn = redis_pool.get().await.unwrap();
+        conn.set::<&str, &str, ()>("foo", "bar").await.unwrap();
+        let result: String = conn.get("foo").await.unwrap();
+        assert_eq!(result, "bar");
+    }
 
     let cors_layer = CorsLayer::new()
         .allow_origin(Any)
