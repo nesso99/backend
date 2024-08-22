@@ -10,13 +10,13 @@ use axum::{
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::error::AppError;
+use crate::{error::AppError, state::AppState};
 
 use super::{create_user, find_user_by_id, find_users, CreateUserDto};
 
 pub struct UserRouter;
 impl UserRouter {
-    pub fn new_router() -> Router<sqlx::Pool<sqlx::Postgres>> {
+    pub fn new_router() -> Router<AppState> {
         Router::new()
             .route("/", get(get_users).post(post_user))
             .route("/:id", get(get_user))

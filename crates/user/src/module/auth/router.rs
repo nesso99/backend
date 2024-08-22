@@ -3,9 +3,9 @@ use serde_json::json;
 
 use crate::state::AppState;
 
-pub struct HealthRouter;
+pub struct AuthRouter;
 
-impl HealthRouter {
+impl AuthRouter {
     pub fn new_router() -> Router<AppState> {
         Router::new().route("/", get(root))
     }

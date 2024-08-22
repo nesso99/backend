@@ -14,7 +14,8 @@ use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
 use user::{
     config::Config,
-    module::{health::HealthRouter, user::UserRouter},
+    module::{auth::AuthRouter, health::HealthRouter, user::UserRouter},
+    state::AppState,
 };
 
 #[tokio::main]
@@ -23,7 +24,7 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let config = Config::parse();
-    let pool = PgPoolOptions::new()
+    let db_pool = PgPoolOptions::new()
         .max_connections(config.database_max_connection)
         .acquire_timeout(Duration::from_secs(3))
         .connect(&config.database_url)
@@ -39,6 +40,10 @@ async fn main() {
         let result: String = conn.get("foo").await.unwrap();
         assert_eq!(result, "bar");
     }
+    let app_state = AppState {
+        db_pool,
+        redis_pool,
+    };
 
     let cors_layer = CorsLayer::new()
         .allow_origin(Any)
@@ -49,7 +54,8 @@ async fn main() {
     let app = Router::new()
         .nest("/api/:version/users", UserRouter::new_router())
         .nest("/api/:version/health", HealthRouter::new_router())
-        .with_state(pool)
+        .nest("/api/:version/auth", AuthRouter::new_router())
+        .with_state(app_state)
         .layer(cors_layer);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
