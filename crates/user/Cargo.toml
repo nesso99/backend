@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = { workspace = true }
+axum-extra = { workspace = true }
 clap = { workspace = true }
 dotenv = { workspace = true }
 serde = { workspace = true }
@@ -17,3 +18,5 @@ tracing-subscriber = { workspace = true }
 bb8 = { workspace = true }
 bb8-redis = { workspace = true }
 redis = { workspace = true }
+jsonwebtoken = { workspace = true }
+once_cell = { workspace = true }

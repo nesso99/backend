@@ -5,6 +5,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use axum_extra::typed_header::TypedHeaderRejection;
 use serde::Serialize;
 use thiserror::Error;
 
@@ -20,6 +21,10 @@ pub enum AppError {
     ParseIntError(#[from] ParseIntError),
     #[error(transparent)]
     SqlxError(#[from] sqlx::Error),
+    #[error(transparent)]
+    JwtError(#[from] jsonwebtoken::errors::Error),
+    #[error(transparent)]
+    TypedHeaderRejectionError(#[from] TypedHeaderRejection),
 }
 
 impl IntoResponse for AppError {
