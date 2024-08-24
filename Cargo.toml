@@ -29,3 +29,4 @@ bb8-redis = "0.16"
 redis = "0.26"
 jsonwebtoken = "9.3"
 once_cell = "1.19"
+validator = { version = "0.18", features = ["derive"] }

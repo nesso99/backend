@@ -20,3 +20,4 @@ bb8-redis = { workspace = true }
 redis = { workspace = true }
 jsonwebtoken = { workspace = true }
 once_cell = { workspace = true }
+validator = { workspace = true }
