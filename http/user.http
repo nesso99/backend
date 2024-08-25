@@ -13,12 +13,23 @@ GET {{host}}/api/v1/users/1
 ###
 
 POST {{host}}/api/v1/users
+Content-Type: application/json
+
+{
+    "username": "ducpham2"
+    "email": "ducpham2@example.com",
+    "password": "123456"
+}
 
 ###
 
 POST {{host}}/api/v1/auth/login
 Content-Type: application/json
-Accept: application/json
+
+###
+
+GET {{host}}/api/v1/auth/xxx
+Content-Type: application/json
 
 ###
 

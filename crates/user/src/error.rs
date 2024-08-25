@@ -17,6 +17,8 @@ pub enum AppError {
     ConflictRecord,
     #[error("internal error")]
     Internal,
+    #[error("not found")]
+    NotFound(String),
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
     #[error(transparent)]
@@ -31,18 +33,41 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         #[derive(Serialize)]
         struct ErrorResponse {
+            error: String,
             message: String,
         }
 
-        let (status, message) = match self {
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "bad request".to_owned()),
-            Self::ConflictRecord => (StatusCode::CONFLICT, "conflict record".to_owned()),
+        let (status, response) = match self {
+            Self::BadRequest => (
+                StatusCode::BAD_REQUEST,
+                ErrorResponse {
+                    error: "Bad Request".to_owned(),
+                    message: "Bad Request".to_owned(),
+                },
+            ),
+            Self::ConflictRecord => (
+                StatusCode::CONFLICT,
+                ErrorResponse {
+                    error: "Conflict".to_owned(),
+                    message: "Conflict".to_owned(),
+                },
+            ),
+            Self::NotFound(msg) => (
+                StatusCode::NOT_FOUND,
+                ErrorResponse {
+                    error: "Not Found".to_owned(),
+                    message: msg,
+                },
+            ),
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "internal error".to_owned(),
+                ErrorResponse {
+                    error: "Internal Server Error".to_owned(),
+                    message: "Internal Server Error".to_owned(),
+                },
             ),
         };
 
-        (status, Json(ErrorResponse { message })).into_response()
+        (status, Json(response)).into_response()
     }
 }

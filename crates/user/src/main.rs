@@ -3,7 +3,7 @@ use std::time::Duration;
 use axum::{
     http::{
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
-        Method,
+        Method, Uri,
     },
     Router,
 };
@@ -14,6 +14,7 @@ use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
 use user::{
     config::Config,
+    error::AppError,
     module::{auth::AuthRouter, health::HealthRouter, user::UserRouter},
     state::AppState,
 };
@@ -57,6 +58,14 @@ async fn main() {
         .nest("/api/:version/auth", AuthRouter::new_router())
         .with_state(app_state)
         .layer(cors_layer);
+
+    // add a fallback service for handling routes to unknown paths
+    let app = app.fallback(handler_404);
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
+}
+
+async fn handler_404(method: Method, uri: Uri) -> AppError {
+    AppError::NotFound(format!("cannot {} {}", method, uri))
 }

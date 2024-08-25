@@ -1,8 +1,8 @@
 use sqlx::PgPool;
 
-use super::{CreateUserDto, UserModel};
+use super::{CreateUserRequest, UserModel};
 
-pub async fn create_user(pool: &PgPool, body: CreateUserDto) -> Result<UserModel, sqlx::Error> {
+pub async fn create_user(pool: &PgPool, body: CreateUserRequest) -> Result<UserModel, sqlx::Error> {
     sqlx::query_as!(
         UserModel,
         r#"INSERT INTO "user" (email,username,password) VALUES ($1, $2, $3) RETURNING *"#,
