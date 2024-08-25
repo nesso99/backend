@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use super::{CreateUserRequest, UserModel};
+use super::{CreateUserRequest, UpdateUserRequest, UserModel};
 
 pub async fn create_user(pool: &PgPool, body: CreateUserRequest) -> Result<UserModel, sqlx::Error> {
     sqlx::query_as!(
@@ -9,6 +9,19 @@ pub async fn create_user(pool: &PgPool, body: CreateUserRequest) -> Result<UserM
         body.email,
         body.username,
         body.password
+    )
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn update_user(pool: &PgPool, body: UpdateUserRequest) -> Result<UserModel, sqlx::Error> {
+    sqlx::query_as!(
+        UserModel,
+        r#"UPDATE "user" SET email = $1, username = $2, password = $3 WHERE id = $4 RETURNING *"#,
+        body.email,
+        body.username,
+        body.password,
+        body.id
     )
     .fetch_one(pool)
     .await
