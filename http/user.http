@@ -12,8 +12,10 @@ GET {{host}}/api/v1/users/1
 
 ###
 
-POST {{host}}/api/v1/users
+POST {{host}}/api/s1/users
 Content-Type: application/json
+Accept: application/json
+
 
 {
     "username": "ducpham2"

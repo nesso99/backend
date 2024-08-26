@@ -4,11 +4,11 @@ use axum::{
     extract::{Path, State},
     response::IntoResponse,
     routing::get,
-    Json, Router,
+    Router,
 };
 use sqlx::PgPool;
 
-use crate::{error::AppError, state::AppState};
+use crate::{error::AppError, json::Json, state::AppState};
 
 use super::{create_user, find_user_by_id, find_users, CreateUserRequest};
 

@@ -1,17 +1,30 @@
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+    Argon2,
+};
 use sqlx::PgPool;
+
+use crate::error::AppError;
 
 use super::{CreateUserRequest, UpdateUserRequest, UserModel};
 
-pub async fn create_user(pool: &PgPool, body: CreateUserRequest) -> Result<UserModel, sqlx::Error> {
-    sqlx::query_as!(
+pub async fn create_user(pool: &PgPool, body: CreateUserRequest) -> Result<UserModel, AppError> {
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+    let password_hash = argon2
+        .hash_password(body.password.as_bytes(), &salt)?
+        .to_string();
+
+    let result = sqlx::query_as!(
         UserModel,
         r#"INSERT INTO "user" (email,username,password) VALUES ($1, $2, $3) RETURNING *"#,
         body.email,
         body.username,
-        body.password
+        password_hash,
     )
     .fetch_one(pool)
-    .await
+    .await?;
+    Ok(result)
 }
 
 pub async fn update_user(pool: &PgPool, body: UpdateUserRequest) -> Result<UserModel, sqlx::Error> {

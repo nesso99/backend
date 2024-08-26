@@ -1,6 +1,7 @@
 use std::num::ParseIntError;
 
 use axum::{
+    extract::rejection::JsonRejection,
     http::StatusCode,
     response::{IntoResponse, Response},
     Json,
@@ -27,6 +28,10 @@ pub enum AppError {
     JwtError(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
     TypedHeaderRejectionError(#[from] TypedHeaderRejection),
+    #[error(transparent)]
+    JsonExtractorRejection(#[from] JsonRejection),
+    #[error(transparent)]
+    Argo2PasswordHashError(#[from] argon2::password_hash::Error),
 }
 
 impl IntoResponse for AppError {
@@ -37,37 +42,30 @@ impl IntoResponse for AppError {
             message: String,
         }
 
-        let (status, response) = match self {
+        let (status, error, message) = match self {
             Self::BadRequest => (
                 StatusCode::BAD_REQUEST,
-                ErrorResponse {
-                    error: "Bad Request".to_owned(),
-                    message: "Bad Request".to_owned(),
-                },
+                "Bad Request".to_owned(),
+                "Bad Request".to_owned(),
             ),
             Self::ConflictRecord => (
                 StatusCode::CONFLICT,
-                ErrorResponse {
-                    error: "Conflict".to_owned(),
-                    message: "Conflict".to_owned(),
-                },
+                "Conflict".to_owned(),
+                "Conflict".to_owned(),
             ),
-            Self::NotFound(msg) => (
-                StatusCode::NOT_FOUND,
-                ErrorResponse {
-                    error: "Not Found".to_owned(),
-                    message: msg,
-                },
+            Self::NotFound(msg) => (StatusCode::NOT_FOUND, "Not Found".to_owned(), msg),
+            Self::JsonExtractorRejection(rejection) => (
+                StatusCode::BAD_REQUEST,
+                "Bad Request".to_owned(),
+                rejection.body_text(),
             ),
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                ErrorResponse {
-                    error: "Internal Server Error".to_owned(),
-                    message: "Internal Server Error".to_owned(),
-                },
+                "Internal Server Error".to_owned(),
+                "Internal Server Error".to_owned(),
             ),
         };
 
-        (status, Json(response)).into_response()
+        (status, Json(ErrorResponse { error, message })).into_response()
     }
 }
