@@ -1,9 +1,9 @@
 DROP TABLE IF EXISTS "user";
 CREATE TABLE "user" (
     id BIGSERIAL PRIMARY KEY,
-    email VARCHAR(255),
-    username VARCHAR(255),
-    password VARCHAR(255)
+    email VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
 
 DROP TABLE IF EXISTS trading_bot;

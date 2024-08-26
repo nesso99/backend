@@ -10,7 +10,6 @@ pub struct CreateUserRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateUserRequest {
     pub id: i64,
-    pub username: String,
-    pub email: String,
-    pub password: String,
+    pub username: Option<String>,
+    pub email: Option<String>,
 }
