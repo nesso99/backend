@@ -32,6 +32,8 @@ pub enum AppError {
     JsonExtractorRejection(#[from] JsonRejection),
     #[error(transparent)]
     Argo2PasswordHashError(#[from] argon2::password_hash::Error),
+    #[error(transparent)]
+    ValidationError(#[from] validator::ValidationErrors),
 }
 
 impl IntoResponse for AppError {
@@ -58,6 +60,11 @@ impl IntoResponse for AppError {
                 StatusCode::BAD_REQUEST,
                 "Bad Request".to_owned(),
                 rejection.body_text(),
+            ),
+            Self::ValidationError(_) => (
+                StatusCode::BAD_REQUEST,
+                "Bad Request".to_owned(),
+                format!("Input validation error: [{self}]").replace('\n', ", "),
             ),
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,

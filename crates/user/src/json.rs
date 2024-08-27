@@ -1,5 +1,10 @@
-use axum::{extract::FromRequest, response::IntoResponse};
-use serde::Serialize;
+use axum::{
+    async_trait,
+    extract::{FromRequest, Request},
+    response::IntoResponse,
+};
+use serde::{de::DeserializeOwned, Serialize};
+use validator::Validate;
 
 use crate::error::AppError;
 
@@ -13,5 +18,24 @@ impl<T: Serialize> IntoResponse for Json<T> {
     fn into_response(self) -> axum::response::Response {
         let Self(value) = self;
         axum::Json(value).into_response()
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ValidatedJson<T>(pub T);
+
+#[async_trait]
+impl<T, S> FromRequest<S> for ValidatedJson<T>
+where
+    T: DeserializeOwned + Validate,
+    S: Send + Sync,
+    Json<T>: FromRequest<S, Rejection = AppError>,
+{
+    type Rejection = AppError;
+
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+        let Json(value) = Json::<T>::from_request(req, state).await?;
+        value.validate()?;
+        Ok(Self(value))
     }
 }
