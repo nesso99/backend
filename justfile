@@ -1,9 +1,9 @@
 run-user:
-  cargo run -p user
+  cargo watch -x 'run -p user'
 
-
-install-sqlx-cli:
+install-tools:
   cargo install sqlx-cli
+  cargo install cargo-watch
 
 db-migrate:
   sqlx migrate run
