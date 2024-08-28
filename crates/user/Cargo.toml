@@ -22,3 +22,4 @@ redis = { workspace = true }
 jsonwebtoken = { workspace = true }
 once_cell = { workspace = true }
 validator = { workspace = true }
+yata = { workspace = true }
