@@ -1,9 +1,11 @@
 use alloy::primitives::{keccak256, Address};
-use axum::{extract::State, response::IntoResponse, routing::post, Router};
+use axum::{extract::State, response::IntoResponse, routing::post, Json, Router};
 use secp256k1::{rand, PublicKey, Secp256k1, SecretKey};
 use sqlx::PgPool;
 
 use crate::{error::AppError, state::AppState};
+
+use super::CreateWalletsResponse;
 
 pub struct WalletRouter;
 impl WalletRouter {
@@ -19,5 +21,7 @@ async fn create_wallets(State(_pool): State<PgPool>) -> Result<impl IntoResponse
     let hash = keccak256(&public_key.serialize_uncompressed()[1..]);
     let address = Address::from_slice(&hash[12..]);
 
-    Ok(address.to_string())
+    Ok(Json(CreateWalletsResponse {
+        address: address.to_string(),
+    }))
 }

@@ -15,7 +15,7 @@ use tower_http::cors::{Any, CorsLayer};
 use user::{
     config::Config,
     error::AppError,
-    module::{auth::AuthRouter, health::HealthRouter, user::UserRouter},
+    module::{auth::AuthRouter, health::HealthRouter, user::UserRouter, wallet::WalletRouter},
     state::AppState,
 };
 
@@ -53,9 +53,10 @@ async fn main() {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let app = Router::new()
-        .nest("/api/:version/users", UserRouter::new_router())
         .nest("/api/:version/health", HealthRouter::new_router())
         .nest("/api/:version/auth", AuthRouter::new_router())
+        .nest("/api/:version/users", UserRouter::new_router())
+        .nest("/api/:version/wallets", WalletRouter::new_router())
         .with_state(app_state)
         .layer(cors_layer);
 
