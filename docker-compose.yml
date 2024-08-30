@@ -1,4 +1,12 @@
 services:
+  mongodb:
+    image: mongo:7
+    container_name: be-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - be-mongodb:/data/db
+
   pgdb:
     image: postgres:16
     container_name: be-pgdb
@@ -18,3 +26,4 @@ services:
 
 volumes:
   be-pgdb:
+  be-mongodb:
