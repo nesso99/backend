@@ -11,3 +11,10 @@ CREATE TABLE trading_bot (
     id BIGSERIAL PRIMARY KEY,
     rule VARCHAR(255)
 );
+
+DROP TABLE IF EXISTS wallet;
+CREATE TABLE wallet (
+    id BIGSERIAL PRIMARY KEY,
+    address VARCHAR(255) NOT NULL,
+    user_id BIGINT NOT NULL
+);

@@ -3,9 +3,9 @@ use axum::{extract::State, response::IntoResponse, routing::post, Json, Router};
 use secp256k1::{rand, PublicKey, Secp256k1, SecretKey};
 use sqlx::PgPool;
 
-use crate::{error::AppError, state::AppState};
+use crate::{error::AppError, json::ValidatedJson, state::AppState};
 
-use super::CreateWalletsResponse;
+use super::{create_wallet, CreateWalletRequest};
 
 pub struct WalletRouter;
 impl WalletRouter {
@@ -14,14 +14,16 @@ impl WalletRouter {
     }
 }
 
-async fn create_wallets(State(_pool): State<PgPool>) -> Result<impl IntoResponse, AppError> {
+async fn create_wallets(
+    State(pool): State<PgPool>,
+    ValidatedJson(body): ValidatedJson<CreateWalletRequest>,
+) -> Result<impl IntoResponse, AppError> {
     let context = Secp256k1::new();
     let secret_key = SecretKey::new(&mut rand::thread_rng());
     let public_key = PublicKey::from_secret_key(&context, &secret_key);
     let hash = keccak256(&public_key.serialize_uncompressed()[1..]);
     let address = Address::from_slice(&hash[12..]);
 
-    Ok(Json(CreateWalletsResponse {
-        address: address.to_string(),
-    }))
+    let wallet = create_wallet(&pool, body.user_id, address.to_string()).await?;
+    Ok(Json(wallet))
 }
