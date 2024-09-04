@@ -1,6 +1,7 @@
 use alloy::primitives::{keccak256, Address};
 use axum::{extract::State, response::IntoResponse, routing::post, Json, Router};
 use secp256k1::{rand, PublicKey, Secp256k1, SecretKey};
+use serde_json::json;
 use sqlx::PgPool;
 
 use crate::{error::AppError, json::ValidatedJson, state::AppState};
@@ -10,8 +11,17 @@ use super::{create_wallet, CreateWalletRequest};
 pub struct WalletRouter;
 impl WalletRouter {
     pub fn new_router() -> Router<AppState> {
-        Router::new().route("/", post(create_wallets))
+        Router::new()
+            .route("/", post(create_wallets))
+            .route("/kafka", post(try_kafka))
     }
+}
+
+async fn try_kafka(
+    State(pool): State<PgPool>,
+    ValidatedJson(body): ValidatedJson<CreateWalletRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    Ok(Json(json!({"message": "kafka"})))
 }
 
 async fn create_wallets(

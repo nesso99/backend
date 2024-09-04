@@ -25,4 +25,4 @@ validator = { workspace = true }
 yata = { workspace = true }
 alloy = { workspace = true }
 secp256k1 = { workspace = true }
-kafka = { workspace = true }
+rdkafka = { workspace = true }
