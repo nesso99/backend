@@ -18,3 +18,19 @@ CREATE TABLE wallet (
     address VARCHAR(255) NOT NULL,
     user_id BIGINT NOT NULL
 );
+
+DROP TABLE IF EXISTS product;
+CREATE TABLE product (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL
+);
+
+DROP TABLE IF EXISTS item;
+CREATE TABLE item (
+    id BIGSERIAL PRIMARY KEY,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES product(id)
+);
