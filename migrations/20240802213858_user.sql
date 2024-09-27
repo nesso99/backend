@@ -32,5 +32,5 @@ CREATE TABLE item (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT NOT NULL,
     quantity INT NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES product(id)
+    FOREIGN KEY (product_id) REFERENCES product (id)
 );
