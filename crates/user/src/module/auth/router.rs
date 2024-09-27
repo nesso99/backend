@@ -3,9 +3,10 @@ use std::{
     time::{Duration, SystemTime},
 };
 
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::{
     async_trait,
-    extract::FromRequestParts,
+    extract::{FromRequestParts, State},
     http::request::Parts,
     response::IntoResponse,
     routing::{get, post},
@@ -18,10 +19,11 @@ use axum_extra::{
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
-use crate::{config::APP_CONFIG, error::AppError, state::AppState};
+use crate::{config::APP_CONFIG, error::AppError, module::user::UserModel, state::AppState};
 
-use super::LoginResponse;
+use super::{LoginRequest, LoginResponse};
 
 static KEYS: Lazy<Keys> = Lazy::new(|| {
     let secret = &APP_CONFIG.jwt_secret;
@@ -38,7 +40,24 @@ impl AuthRouter {
     }
 }
 
-async fn login() -> Result<impl IntoResponse, AppError> {
+async fn login(
+    State(pool): State<PgPool>,
+    Json(body): Json<LoginRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let user = sqlx::query_as!(
+        UserModel,
+        r#"SELECT * FROM "user" WHERE username = $1 LIMIT 1"#,
+        body.username
+    )
+    .fetch_optional(&pool)
+    .await?
+    .ok_or(AppError::NotFound("User not found".to_string()))?;
+
+    let is_valid = verify_password(&body.password, &user.password)?;
+    if !is_valid {
+        return Err(AppError::BadRequest("Invalid password".to_string()));
+    }
+
     let now = SystemTime::now();
     let expiry = now
         .checked_add(Duration::from_secs(APP_CONFIG.jwt_ttl_secs))
@@ -49,13 +68,20 @@ async fn login() -> Result<impl IntoResponse, AppError> {
         .as_secs() as usize;
 
     let claims = Claims {
-        sub: "b@b.com".to_owned(),
+        sub: user.email,
         exp: expiry,
     };
     let token = encode(&Header::default(), &claims, &KEYS.encoding)?;
     Ok(Json(LoginResponse {
         access_token: token,
     }))
+}
+
+fn verify_password(password: &str, hash: &str) -> Result<bool, AppError> {
+    let parsed_hash = PasswordHash::new(hash)?;
+    Ok(Argon2::default()
+        .verify_password(password.as_bytes(), &parsed_hash)
+        .is_ok())
 }
 
 async fn me(claims: Claims) -> Result<String, AppError> {

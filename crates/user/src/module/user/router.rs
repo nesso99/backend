@@ -32,7 +32,9 @@ async fn update_users(
     Path(params): Path<HashMap<String, String>>,
     Json(body): Json<UpdateUserRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let id = params.get("id").ok_or(AppError::BadRequest)?;
+    let id = params
+        .get("id")
+        .ok_or(AppError::BadRequest("Missing id parameter".to_string()))?;
     let id = id.parse::<i64>()?;
     let users = update_user(&pool, id, body).await?;
     Ok(Json(users))
@@ -55,7 +57,9 @@ async fn get_user(
     State(pool): State<PgPool>,
     Path(params): Path<HashMap<String, String>>,
 ) -> Result<impl IntoResponse, AppError> {
-    let id = params.get("id").ok_or(AppError::BadRequest)?;
+    let id = params
+        .get("id")
+        .ok_or(AppError::BadRequest("Missing id".to_string()))?;
     let id = id.parse::<i64>()?;
     let user = find_user_by_id(&pool, id).await?;
     Ok(Json(user))

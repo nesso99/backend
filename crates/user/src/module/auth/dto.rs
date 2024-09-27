@@ -4,7 +4,7 @@ use validator::Validate;
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct LoginRequest {
     #[validate(length(min = 1, message = "Can not be empty"))]
-    pub email: String,
+    pub username: String,
     #[validate(length(min = 1, message = "Can not be empty"))]
     pub password: String,
 }
